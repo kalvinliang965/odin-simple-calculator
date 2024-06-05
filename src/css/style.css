@@ -46,6 +46,7 @@ body {
     margin-bottom: 20px;
     color: #ffffff;
     font-size: 50px;
+    flex-direction: column;
 }
 
 .options {
