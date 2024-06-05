@@ -90,6 +90,8 @@ button {
 #zero {
     min-width: 190px;
     border-radius: 80px;
+    text-align: left;
+    padding-left: 35px;
 }
 
 .function-button {
