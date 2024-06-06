@@ -2,7 +2,7 @@
 const screen = document.querySelector(".screen");
 let expression = [];
 let showResult = false;
-let neg_list = []; // list of number to be negate at runtime
+let neg = false;
 const LINE_LENGTH = 13;
 main();
 
@@ -64,39 +64,52 @@ function number_handler(event) {
     enter2screen(event.target.textContent);
 }
 
+function isError(text) {
+    return text == "ERROR" || text == "INFINITY" || text == "-INFINITY";
+}
 function enter2screen(newText) {
     if (showResult) return; // showing the result, not allow to enter anything
-    if (newText == "%") {
-        newText = 'R';
-    }
-    if (newText == "mod") {
-        newText = '%';
-    }
-    if (newText != "neg") {
-        const lastElement = expression.at(-1);
-        if (expression.length > 0) {
-            if (newText == '.' && lastElement.includes('.'))  return;
-            else if (!isNum(newText)) {
-                if (newText == 'R' && !isNum(lastElement)) return; // cannot apply percent to non number
-                else if (newText == 'R')                   expression[expression.length - 1] = (lastElement* 0.001).toFixed(4);
-                else                                       expression.push(newText);
-            } else {
-                if (!isNum(lastElement))                   expression.push(newText);
-                else                                       expression[expression.length - 1] = lastElement + newText;
-            }
-        } 
-        // empty expression
-        else {
-            if (!isNum(newText)) 
-                return; // not allow to start with nonNumber
-            expression.push(newText);
+
+    if (!isError(newText)) {
+        if (newText == "%") {
+            newText = 'R';
         }
-    } else {
-        if (neg_list.includes(expression.length)) return;
-        neg_list.push(expression.length);
-    }
-    if (newText == "neg") {
-        newText = '-';
+        if (newText == "mod") {
+            newText = '%';
+        }
+        if (newText != "neg") {
+            const lastElement = expression.at(-1);
+            if (expression.length > 0) {
+                if (newText == '.' && lastElement.includes('.'))  return;
+                else if (!isNum(newText)) {
+                    if (newText == 'R' && !isNum(lastElement)) return; // cannot apply percent to non number
+                    else if (newText == 'R')
+                        expression[expression.length - 1] = (lastElement* 0.001).toFixed(4);
+                    else    expression.push(newText);
+                } else {
+                    if (!isNum(lastElement)){
+                        if (neg) {
+                            newText = (parseFloat(newText) * -1).toString();
+                            neg = false;
+                        }
+                        expression.push(newText);
+                    }                   
+                    else                                       
+                        expression[expression.length - 1] = lastElement + newText;
+                }
+            } 
+            // empty expression
+            else {
+                if (!isNum(newText)) 
+                    return; // not allow to start with nonNumber
+                expression.push(newText);
+            }
+        } else {
+            neg = true;
+        }
+        if (newText == "neg") {
+            return;
+        }
     }
     let line = screen.lastElementChild;
     if (line == null) {
@@ -133,7 +146,8 @@ function clear() {
         screen.removeChild(screen.firstElementChild);
     }
     expression = [];
-    neg_list = [];
+    // neg_list = [];
+    neg=false;
     showResult = false;
 }
 
@@ -179,24 +193,22 @@ function undo() {
     } else lastLine.textContent = text; 
 }
 
-function negate(expression, neg_list) {
-    let index;
-    for (let i = 0; i < neg_list.length; i++ ) {
-        index = neg_list[i];
-        if (index < expression.length) {
-            expression[index] *= -1;
-        } else alert(`Invalid index at negate: Index: ${index}`);
-    }
-}
+// function negate(expression, neg_list) {
+//     let index;
+//     for (let i = 0; i < neg_list.length; i++ ) {
+//         index = neg_list[i];
+//         if (index < expression.length) {
+//             expression[index] *= -1;
+//         } else alert(`Invalid index at negate: Index: ${index}`);
+//     }
+// }
 
 function calculate(expression) {
     // the expression is invalid
     if (!validParentheses(expression)) {
-        clear();
-        enter2screen("ERROR");
-        return;
+        return "ERROR";
     }
-    negate(expression, neg_list);
+    // negate(expression, neg_list);
     const postfix = infix2postfix(expression);
     const N = postfix.length;
     stack = [];
