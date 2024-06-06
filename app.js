@@ -2,6 +2,7 @@
 const screen = document.querySelector(".screen");
 let expression = [];
 let showResult = false;
+let neg_list = []; // list of number to be negate at runtime
 
 main();
 
@@ -13,11 +14,14 @@ function main() {
     const clearButton = document.querySelector("#clear");
     clearButton.removeEventListener("click", number_handler);
     clearButton.addEventListener("click", clear);
-
     const deleteButton = document.querySelector("#delete");
     deleteButton.removeEventListener("click", number_handler);
     deleteButton.addEventListener("click", undo);
-
+    const negateButton = document.querySelector('#negate');
+    negateButton.removeEventListener("click", number_handler);
+    negateButton.addEventListener("click", () => {
+        enter2screen("neg");
+    });
     const equalButton = document.querySelector("#equal");
     equalButton.removeEventListener("click", number_handler);
     equalButton.addEventListener("click", () => {
@@ -62,31 +66,30 @@ function number_handler(event) {
 
 function enter2screen(newText) {
     if (showResult) return; // showing the result, not allow to enter anything
-    const lastElement = expression.at(-1);
-
-    if (expression.length > 0) {
-        if (newText == '.' && lastElement.includes('.'))  return;
-        else if (!isNum(newText)) {
-            if (isOperator(newText) && isOperator(expression.at(-2))) return;
-            if (lastElement == "") expression[expression.length - 1] = lastElement + newText;
-            else {
+    if (newText != "neg") {
+        const lastElement = expression.at(-1);
+        if (expression.length > 0) {
+            if (newText == '.' && lastElement.includes('.'))  return;
+            else if (!isNum(newText)) {
                 expression.push(newText);
-                expression.push("");
+            } else {
+                if (!isNum(lastElement)) expression.push(newText);
+                else                     expression[expression.length - 1] = lastElement + newText;
             }
-        } else {
-            if (!isNum(lastElement)) {
-                expression.push(newText);
-                expression.push("");
-            }
-            else expression[expression.length - 1] = lastElement + newText;
+        } 
+        // empty expression
+        else {
+            if (!isNum(newText)) 
+                return; // not allow to start with nonNumber
+            expression.push(newText);
         }
-    } 
-    // empty expression
-    else {
-        if (isOperator(newText)) return; // not allow to start with operator
-        expression.push(newText);
+    } else {
+        if (neg_list.includes(expression.length)) return;
+        neg_list.push(expression.length);
     }
-    
+    if (newText == "neg") {
+        newText = '-';
+    }
     let line = screen.lastElementChild;
     if (line == null) {
         line = newLine();
@@ -110,6 +113,7 @@ function clear() {
         screen.removeChild(screen.firstElementChild);
     }
     expression = [];
+    neg_list = [];
     showResult = false;
 }
 
@@ -151,6 +155,16 @@ function undo() {
 
 }
 
+function negate(expression, neg_list) {
+    let index;
+    for (let i = 0; i < neg_list.length; i++ ) {
+        index = neg_list[i];
+        if (index < expression.length) {
+            expression[index] *= -1;
+        } else alert(`Invalid index at negate: Index: ${index}`);
+    }
+}
+
 function calculate(expression) {
     // the expression is invalid
     if (!validParentheses(expression)) {
@@ -158,6 +172,7 @@ function calculate(expression) {
         enter2screen("ERROR");
         return;
     }
+    negate(expression, neg_list);
     const postfix = infix2postfix(expression);
     const N = postfix.length;
     stack = [];
