@@ -3,7 +3,7 @@ const screen = document.querySelector(".screen");
 let expression = [];
 let showResult = false;
 let neg_list = []; // list of number to be negate at runtime
-
+const LINE_LENGTH = 13;
 main();
 
 function main() {
@@ -66,6 +66,9 @@ function number_handler(event) {
 
 function enter2screen(newText) {
     if (showResult) return; // showing the result, not allow to enter anything
+    if (newText == "%") {
+        newText = 'R';
+    }
     if (newText == "mod") {
         newText = '%';
     }
@@ -74,10 +77,12 @@ function enter2screen(newText) {
         if (expression.length > 0) {
             if (newText == '.' && lastElement.includes('.'))  return;
             else if (!isNum(newText)) {
-                expression.push(newText);
+                if (newText == 'R' && !isNum(lastElement)) return; // cannot apply percent to non number
+                else if (newText == 'R')                   expression[expression.length - 1] = (lastElement* 0.001).toFixed(4);
+                else                                       expression.push(newText);
             } else {
-                if (!isNum(lastElement)) expression.push(newText);
-                else                     expression[expression.length - 1] = lastElement + newText;
+                if (!isNum(lastElement))                   expression.push(newText);
+                else                                       expression[expression.length - 1] = lastElement + newText;
             }
         } 
         // empty expression
@@ -98,10 +103,22 @@ function enter2screen(newText) {
         line = newLine();
     }
     if (line.textContent != null && 
-        line.textContent.length > 13) {
+        line.textContent.length > LINE_LENGTH) {
         line = newLine();
     }
-    line.textContent = line.textContent + newText;
+    if (newText == 'R') {
+        let index = line.textContent.length - 1;
+        while (!isOperator(line.textContent[index])) index--;
+        line.textContent =  line.textContent.substring(0,index + 1);
+        let lastElement = expression[expression.length - 1];
+        if (line.textContent.length + lastElement.length <= LINE_LENGTH) {
+            line.textContent += lastElement;
+        } else {
+            line = newLine();
+            line.textContent = lastElement;
+        }
+    }
+    else                line.textContent = line.textContent + newText;
     screen.appendChild(line);
 }
 
@@ -148,6 +165,11 @@ function operate(a,b, op) {
 
 function undo() {
     if (showResult) return; // showing the result, not allow to remove anything
+    // remove from expression
+    let lastElement = expression.pop();
+    lastElement = lastElement.substring(0, lastElement.length - 1);
+    if (lastElement != "") expression.push(lastElement);
+    // remove display
     const lastLine = screen.lastElementChild;
     if (lastLine == null) return; // element not exist
     let text = lastLine.textContent;
@@ -155,7 +177,6 @@ function undo() {
     if (text == "") {
         screen.removeChild(lastLine);
     } else lastLine.textContent = text; 
-
 }
 
 function negate(expression, neg_list) {
