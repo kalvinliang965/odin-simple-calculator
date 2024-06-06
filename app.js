@@ -24,12 +24,37 @@ function main() {
     });
     const equalButton = document.querySelector("#equal");
     equalButton.removeEventListener("click", number_handler);
-    equalButton.addEventListener("click", () => {
-        const ret = calculate(expression);
-        clear();
-        enter2screen(ret);
-        showResult = true;
-    });
+    equalButton.addEventListener("click",enter);
+    document.addEventListener("keydown", (event)=> {
+        console.log(typeof(event.key));
+        console.log(`key press: ${event.key}`);
+
+        if (isNum(event.key) || isOperator(event.key) ||
+            event.key === '.' || event.key === '(' ||
+                event.key === ')'
+            ) {
+            enter2screen(event.key.toString());
+        }
+
+        if (event.key === "Enter") {
+            enter();
+        }
+
+        if (event.key === "Backspace") {
+            undo();
+        }
+
+        if (event.key === 'c' || event.key==='c') {
+            clear();
+        }
+    })
+}
+
+function enter() {
+    const ret = calculate(expression);
+    clear();
+    enter2screen(ret);
+    showResult = true;
 }
 
 function isOperator(op) {
@@ -230,7 +255,6 @@ function calculate(expression) {
             alert(`ERROR in myEval: token is invalid: ${token}`);
         }
     }
-    console.log(`stack: ${stack}`);
     ret = parseFloat(stack.pop());
     if (Number.isInteger(ret)) {
         return parseInt(ret);
