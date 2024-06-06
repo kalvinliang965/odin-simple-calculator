@@ -66,11 +66,20 @@ function enter2screen(newText) {
 
     if (expression.length > 0) {
         if (newText == '.' && lastElement.includes('.'))  return;
-        else if (isOperator(newText)) {
-            if (isOperator(expression.at(-2))) return;
-            expression.push(newText);
-            expression.push("");
-        } else expression[expression.length - 1] = lastElement + newText;
+        else if (!isNum(newText)) {
+            if (isOperator(newText) && isOperator(expression.at(-2))) return;
+            if (lastElement == "") expression[expression.length - 1] = lastElement + newText;
+            else {
+                expression.push(newText);
+                expression.push("");
+            }
+        } else {
+            if (!isNum(lastElement)) {
+                expression.push(newText);
+                expression.push("");
+            }
+            else expression[expression.length - 1] = lastElement + newText;
+        }
     } 
     // empty expression
     else {
