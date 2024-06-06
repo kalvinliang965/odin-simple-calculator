@@ -66,6 +66,9 @@ function number_handler(event) {
 
 function enter2screen(newText) {
     if (showResult) return; // showing the result, not allow to enter anything
+    if (newText == "mod") {
+        newText = '%';
+    }
     if (newText != "neg") {
         const lastElement = expression.at(-1);
         if (expression.length > 0) {
