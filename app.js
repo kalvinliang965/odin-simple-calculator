@@ -85,7 +85,8 @@ function enter2screen(newText) {
                     if (newText == 'R' && !isNum(lastElement)) return; // cannot apply percent to non number
                     else if (newText == 'R')
                         expression[expression.length - 1] = (lastElement* 0.001).toFixed(4);
-                    else    expression.push(newText);
+                    else if (newText == '.') expression[expression.length - 1] += newText
+                    else                     expression.push(newText);
                 } else {
                     if (!isNum(lastElement)){
                         if (neg) {
